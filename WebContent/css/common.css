@@ -1,0 +1,361 @@
+body {
+	/* the default margin is 8px. In order to over-ride the same */
+	margin: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+div {
+	/*for slow transition in display of new divs */
+	-moz-transition: opacity 1s; /* Firefox */
+	-webkit-transition: opacity 1s; /* Safari and Chrome */
+	-o-transition: opacity 1s; /* Opera */
+	transition: opacity 1s;
+}
+
+ul {
+	list-style: none;
+	text-align: left;
+}
+
+li {
+	margin-bottom: 9px;
+}
+
+.landingHeader {
+	background-color: #ffab33; /*  #5f5f5f; */
+	text-align: right;
+	color: #f1f1f1;
+	height: 9%;
+	min-height: 9%;
+	min-width: 100%;
+}
+
+.alternateHeader {
+	background-color: #ffab33; /* #5f5f5f; */
+	color: #f1f1f1;
+	height: 9%;
+	min-height: 9%;
+	min-width: 100%;
+	display: none;
+	color: #f1f1f1;
+}
+
+.footer {
+	background-color: #ffab33; /*  #5f5f5f; */
+	color: #f1f1f1;
+	/* height is 1/3rd of header*/
+	height: 3%;
+	min-height: 3%;
+	min-width: 100%;
+	color: #f1f1f1;
+}
+
+.landingLogo {
+	
+}
+
+.landinglogotext {
+	/*  without the inline-block display, it is not possible to add the top-margin*/
+	display: inline-block;
+	margin-top: 1.5%;
+	margin-right: 2%;
+	margin-left: 5px;
+	font-family: "Segoe UI", Arial, sans-serif !important;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.container {
+	/* background-color: #f1f1f1; */
+	min-height: 88%;
+	height: 88%;
+	width: 100%;
+	/* auto scroll added for search results */
+	overflow: auto;
+}
+
+.leftPane {
+	float: left;
+	width: 45%;
+	margin-left: 3%;
+}
+
+.rightPane {
+	float: right;
+	width: 45%;
+	margin-right: 3%;
+	display: none;
+}
+
+.landingForm {
+	position: absolute;
+	text-align: center;
+	margin-top: 20%;
+	margin-left: 30%;
+	display: inline-block;
+}
+
+.searchForm {
+	/* refer - http://stackoverflow.com/questions/1798817/why-is-the-center-tag-deprecated-in-html */
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.searchInput {
+	width: 400px;
+	height: 30px;
+	font-family: "Segoe UI", Arial, sans-serif;
+	font-size: 15px;
+	border-color: silver;
+	border-radius: 5px;
+	/* background-color: #f1f1f1;
+	color: #5f5f5f; */
+}
+
+.searchButton {
+	
+}
+
+.alternateSearchInput {
+	width: 400px;
+	height: 30px;
+	font-family: "Segoe UI", Arial, sans-serif;
+	font-size: 15px;
+	border-color: silver;
+	border-radius: 5px;
+	/* background-color: #f1f1f1;
+	color: #5f5f5f; */
+}
+
+.alternateLogo {
+	display: inline-block;
+	margin-top: 1%;
+	margin-left: 2%;
+	margin-top: 1%;
+}
+
+.alternateLogotext {
+	margin-left: 5px;
+	font-family: "Segoe UI", Arial, sans-serif !important;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.results {
+	display: none;
+	color: #5f5f5f;
+}
+
+.resultBlock {
+	/* this line makes the view interesting - display: inline-block; */
+	margin-top: 10px;
+	padding: 10px;
+	width: 100%;
+	border-bottom: solid;
+	border-bottom-color: #f1f1f1;
+	/* used to change the mouse to hand pointer */
+	cursor: pointer;
+}
+
+.resultBlock:HOVER {
+	background-color: #f1f1f1;
+	border-right-style: solid;
+	border-right-color: #729FCF;
+}
+
+.tweetInfo {
+	
+}
+
+.tweetUserContent {
+	color: #729FCF;
+	font-weight: bold;
+}
+
+.tweetDate {
+	
+}
+
+.tweetContent {
+	font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.totalResults {
+	margin-top: 10px;
+	width: 100%;
+	padding: 10px;
+	font-weight: bolder;
+	color: white;
+	background-color: #0099ff; /* #3465a4; */
+	font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.tweetDate, .tweetLang {
+	margin-left: 20px;
+	margin-right: 0px;
+	float: right;
+}
+
+.tweetCard {
+	margin-top: 10px;
+	padding: 8px;
+	min-width: 100%;
+	width: 100%;
+	display: none;
+	border: thin;
+	border-style: solid;
+	border-color: #729FCF;
+	background-color: white;
+	border-radius: 5px;
+	color: black;
+}
+
+.tweetCardUser {
+	background-color: #f1f1f1;
+	display: table-row;
+	width: 100%;
+}
+
+.tweetCardtweetInfo {
+	display: table-row;
+	padding-top: 5px;
+	min-width: 100%;
+}
+
+.tweetCardUserName {
+	margin-left: 55px;
+	text-align: justify;
+}
+
+.tweetCardUserScreenName {
+	
+}
+
+.tweetCardUserDesc {
+	text-align: justify;
+	margin-left: 55px;
+	color: #5f5f5f;
+	font-size: 14px;
+}
+
+.profilePicture {
+	float: left;
+}
+
+.rightPaneTabsUl {
+	margin-top: 10px;
+	padding: 10px;
+	background-color: #0099ff; /* #3465a4; */
+	color: white;
+}
+
+.rightPaneTabs {
+	display: inline;
+}
+
+.rightPaneHeaders {
+	font-weight: bolder;
+	color: white;
+	font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.hashtags {
+	/* values taken from Twitter website*/
+	color: #F30;
+	font-family: "Helvetica Neue ", Helvetica, Arial, sans-serif;
+}
+
+#hashTagFacet {
+	display: table-cell;
+	width: 15%;
+}
+
+#peopleFacet {
+	display: table-cell;
+	width: 25%;
+}
+
+#locationFacet {
+	display: table-cell;
+	width: 20%;
+}
+
+#topPeople {
+	color: navy;
+	/* text-decoration: underline; */
+	/* used to change the mouse to hand pointer*/
+	cursor: pointer;
+}
+
+.topPeopleEntry {
+	
+}
+
+.topPeopleEntry:HOVER {
+	background-color: #f1f1f1;
+	border-right-style: solid;
+	border-right-color: navy;
+}
+
+.topHastagEntry {
+	
+}
+
+.topHastagEntry:HOVER {
+	background-color: #f1f1f1;
+	border-right-style: solid;
+	border-right-color: #F30;
+}
+
+.topLocationEntry {
+	
+}
+
+.topLocationEntry:HOVER {
+	background-color: #f1f1f1;
+	border-right-style: solid;
+	border-right-color: green;
+}
+
+#topHashtags {
+	/* used to change the mouse to hand pointer*/
+	cursor: pointer;
+}
+
+#topLocations {
+	color: green;
+	/* used to change the mouse to hand pointer*/
+	cursor: pointer;
+}
+
+.breadCrumbs {
+	
+}
+
+.facetHeader {
+	
+}
+
+.selectedBreadCrumbs {
+	font-style: italic;
+}
+
+.topHastagBC {
+	color: #F30;
+	cursor: pointer;
+}
+
+.topPeopleBC {
+	color: navy;
+	cursor: pointer;
+}
+
+.topLocationBC {
+	color: green;
+	cursor: pointer;
+}
+
+.clearLink {
+	float: right;
+}

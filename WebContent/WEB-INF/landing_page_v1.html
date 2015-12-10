@@ -1,0 +1,252 @@
+<html>
+<head>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<link rel="stylesheet" type="text/css" href="css/common.css">
+
+<script type="text/javascript">
+	$("#searchQuery").val("");
+	$("#alternateSearchQuery").val("");
+	var languages = {
+		de : "German",
+		en : "English"
+	};
+	/* move all this to a different script file */
+	function landingFormSubmit() {
+		document.getElementById("landingHeader").style.display = 'none';
+		document.getElementById("alternateHeader").style.display = 'block';
+		//jquery
+		$("#landingForm").hide();
+		if ($("#searchQuery").val() != undefined
+				&& $("#searchQuery").val() != "") {
+			$("#alternateSearchQuery").val($("#searchQuery").val());
+			alternateFormSubmit();
+		}
+
+	}
+	function alternateFormSubmit() {
+		if ($("#alternateSearchQuery").val() != undefined
+				&& $("#alternateSearchQuery").val() != "") {
+
+			//smaple queries
+			//http://localhost:8983/solr/partC_BM25/select?q=text_en%3AFrance&wt=json&indent=true
+			var query = $("#alternateSearchQuery").val();
+			query = $.trim(query); //Remove the white spaces at the start and at the end of the string
+			var searchURLPreQUery = "http://localhost:8983/solr/partC_BM25/select?q=";
+			var query = "text:" + query + " OR text_en:" + query
+					+ " OR text_de:" + query + " OR text_ru:" + query;
+			var searchURLPostQUery = "&wt=json&indent=true";
+			var finalURL = searchURLPreQUery + encodeURIComponent(query)
+					+ searchURLPostQUery;
+			console.log(finalURL);
+			//we can use the getJson instead of the above ajax request directly
+			$
+					.getJSON(
+							finalURL,
+							function(result) {
+								var resultBlockDiv = document
+										.getElementById('resultBlock');
+								var resultDiv = document
+										.getElementById('results');
+								//Handle emptying of results -- resultBlockDiv.empty();
+								$("#totalResults").empty();
+								$("#totalResults").append(
+										result.response.numFound
+												+ " results found");
+								var tweets = result.response.docs;
+								$
+										.each(
+												tweets,
+												function(i, field) {
+													debugger;
+													//$("div").append(field + " ");
+													//console.log(field);
+													var clone = resultBlockDiv
+															.cloneNode(true);
+													//setting the username
+													clone.childNodes[1].childNodes[1].childNodes[0].textContent = field.name;
+													//setting the date
+													clone.childNodes[1].childNodes[1].childNodes[1].childNodes[0].textContent = new Date(
+															field.created_at)
+															.toDateString();
+													//setting the language 
+													clone.childNodes[1].childNodes[1].childNodes[2].childNodes[0].textContent = languages[field.lang];
+													//the common text field helps in remvoing the if conditions
+													clone.childNodes[1].childNodes[3].childNodes[0].textContent = field.text;
+													//for hashtags
+													if (field.tweet_hashtags != undefined) {
+														clone.childNodes[1].childNodes[5].childNodes[0].textContent = "#"
+																+ field.tweet_hashtags
+																		.join(' #');
+													} else {
+														clone.childNodes[1].childNodes[5].childNodes[0].textContent = [];
+													}
+													//giving an unique ID to the newly created element
+													clone.id = "resultBlockDiv"
+															+ i;
+
+													//adding tweet card
+													var tweetCardClone = document
+															.getElementById(
+																	'tweetCard')
+															.cloneNode(true);
+													tweetCardClone.id = "tweetCardClone"
+															+ i;
+													//populate the tweet card
+													//setting the username
+													//for image - tweetCardClone.childNodes[1].childNodes[1].childNodes[1].src
+													tweetCardClone.childNodes[1].childNodes[3].childNodes[0].textContent = field.name;
+													tweetCardClone.childNodes[1].childNodes[3].childNodes[1].childNodes[0].textContent = "@"
+															+ field.screen_name;
+													//setting the user description
+													if (field.description != undefined
+															&& field.description != "") {
+
+														tweetCardClone.childNodes[1].childNodes[5].childNodes[0].textContent = "\""
+																+ field.description
+																+ "\"";
+													} else {
+														tweetCardClone.childNodes[1].childNodes[5].childNodes[0].textContent = "";
+													}
+													//setting the date
+													tweetCardClone.childNodes[3].childNodes[1].childNodes[0].textContent = field.text;
+													//for hashtags
+													if (field.tweet_hashtags != undefined) {
+														tweetCardClone.childNodes[3].childNodes[3].childNodes[0].textContent = "#"
+																+ field.tweet_hashtags
+																		.join(' #');
+													} else {
+														tweetCardClone.childNodes[3].childNodes[3].childNodes[0].textContent = [];
+													}
+													//the common text field helps in remvoing the if conditions
+													tweetCardClone.childNodes[3].childNodes[5].childNodes[0].textContent = new Date(
+															field.created_at)
+															.toDateString();
+													//setting the language 
+													tweetCardClone.childNodes[3].childNodes[6].childNodes[0].textContent = languages[field.lang];
+
+													resultDiv
+															.appendChild(tweetCardClone);
+													resultDiv
+															.appendChild(clone);
+													//attaching  the event to show the clone
+													$("#resultBlockDiv" + i)
+															.click(
+																	function() {
+																		showTweetCard(i);
+																	});
+													$("#tweetCardClone" + i)
+															.mouseleave(
+																	function() {
+																		hideTweetCard(i);
+																	});
+												});
+								//hiding the default implementations
+								$("#resultBlock").slideUp();
+								$("#tweetCard").slideUp();
+							}).fail(function() {
+						//console.log("error");
+					});
+			//here have used jsonp instead of json inorder to hande cross origin requests
+			//refer - http://stackoverflow.com/questions/6114436/access-control-allow-origin-error-sending-a-jquery-post-to-google-apis
+
+			/* $.ajax({
+								url : searchURL,
+								dataType : "jsonp"
+
+							}).done(function(tweets) {
+						$.each(result, function(i, field) {
+							//$("div").append(field + " ");
+							console.log(field);
+						});
+					}).fail(function() {
+						alert("error");
+					}).always(function() {
+						//alert("complete");
+					});
+			 */
+			//$("#results").load("tweets.html");
+			$("#results").show();
+		}
+	}
+
+	function showTweetCard(id) {
+		//$(this).css('z-index', '-1');
+		//$("#tweetCardClone" + id).css('opacity', '1');
+		$("#tweetCardClone" + id).slideDown();
+		//$("#resultBlockDiv" + id).css('display', 'none');
+		$("#resultBlockDiv" + id).hide();
+	}
+	function hideTweetCard(id) {
+		//$(this).css('z-index', '-1');
+		$("#tweetCardClone" + id).slideUp()
+		//$("#resultBlockDiv" + id).css('display', 'block');
+		$("#resultBlockDiv" + id).show();
+	}
+</script>
+</head>
+<body>
+	<div id="landingHeader" class="landingHeader">
+		<span id="landingLogo" class="landingLogo"><img alt="ganadores"
+			src=""><span class="landinglogotext">Ganadores</span></span>
+	</div>
+	<div id="alternateHeader" class="alternateHeader">
+		<div id="alternateForm" class="alternateForm">
+
+			<form id="alternateSearchForm" action="" class="alternateSearchForm">
+				<span id="alternateLogo" class="alternateLogo"><img
+					alt="ganadores" src=""><span class="alternateLogotext">Ganadores</span></span>
+				<input type="text" id="alternateSearchQuery"
+					name="alternateSearchQuery" class="alternateSearchInput"> <input
+					type="button" id="alternateSearchButton"
+					name="alternateSearchButton" class="alternateSearchButton"
+					onclick="alternateFormSubmit()" value="Go">
+			</form>
+		</div>
+	</div>
+	<div id="container" class="container">
+		<div id="landingForm" class="landingForm">
+			<form id="searchForm" action="" class="searchForm">
+				<input type="text" id="searchQuery" name="searchQuery"
+					class="searchInput"> <input type="button" id="searchButton"
+					name="searchButton" class="searchButton"
+					onclick="landingFormSubmit()" value="Go">
+			</form>
+		</div>
+
+		<div id="results" class="results">
+			<div id="totalResults" class="totalResults"></div>
+			<div id="tweetCard" class="tweetCard">
+				<div class="tweetCardUser">
+					<div class="profilePicture">
+						<img alt="Profile Picture"
+							src="images/default_profile_1_normal.png">
+					</div>
+					<div class="tweetCardUserName">
+						abinBehera <a href="#" class="tweetCardUserScreenName">@abinBehera</a>
+					</div>
+					<div class="tweetCardUserDesc">ABKB</div>
+				</div>
+				<div class="tweetCardtweetInfo">
+					<div class="tweetContent">Tweet Content</div>
+					<span class="hashtags">#TweetHashtags</span> <span
+						class="tweetDate">Sat May 23 2015</span><span class="tweetLang">English</span>
+				</div>
+			</div>
+			<div id="resultBlock" class="resultBlock">
+				<div class="tweetInfo">
+					<div class="tweetUserContent">
+						abinBehera <span class="tweetDate">Sat May 23 2015</span><span
+							class="tweetLang">English</span>
+					</div>
+
+					<div class="tweetContent">Tweet Content</div>
+					<span class="hashtags">#TweetHashtags</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="footer" class="footer"></div>
+</body>
+</html>

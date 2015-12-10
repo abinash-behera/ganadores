@@ -1,0 +1,147 @@
+Features:
+
+	stanford nlp - XXXXX
+	contnet tagging - XXXXX
+	facet - Partially done (UI remains) 
+	sentiment analysis
+	summary - also add trending topics to summary  (based on top K terms from the tweets - should be simple)
+	analytics
+	pageRank
+	Language Filter
+	autocomplete
+	suggestions
+	Map <may be later - but if possible then it will rock>
+	sentiment analysis using Stanford NLP (see the copyright part for this - to avoid copyright use a standlone web project.. thats it)
+
+
+mention the keywords in the UI which were used to generate the data
+
+In the final webste -- include the stuff related to content tagging and other features
+
+write a mail to - as a thank you mail - Yonik Seeley
+make the page responsive
+
+create a fresh solr core for part C
+
+
+Issue - Cross Origin Resource Sharing (CORS) issue between my solr and UI server.
+
+Solution - follow this tutorial -
+
+1) add the filter info in web.xml
+2) import the corresponding libraries to the lib folder of web-inf
+
+    jetty-servlets-8.1.14.v20131031.jar
+    jetty-util-8.1.14.v20131031.jar
+
+    
+Handle -langauges using key value pairs
+
+emptying the results fetched from previous query and showing the fresh results
+pagination
+
+divide the right half into two parts: upper - for some info
+lower - for graphs
+
+Showing total ressults -- sho add pagination 
+as of now using the text field in query in landingPage -- either keep that or add weights - or find the best way out.
+Language check - display the language of the query (may be add a translate function) 
+
+two scroll bars in chrome
+
+hastags - change font and highlight those
+
+search france - first tweet comes small
+
+pagination
+autocomplete
+suggested results
+summary
+
+
+Tabs - two types -
+
+as of now loading all data in a single go --  but we can use ajax tabs as well -- take a look here -https://jqueryui.com/tabs/#ajax
+
+Currently the right pane is hidden by default and only shows up when some query has results -- nothing in case of no results .. ---> this has to be taken care of as
+overall statistics of the tweets indexed in solr will not change 
+
+
+
+add some lag - when the normal tweet is being displayed and the additionaltweet info is slid up. __ else it becomes confusing
+
+
+
+handle locations - baiscally we have two locations:
+
+1) one from user 
+2) and other tweets containing those locations -- in the facets 
+
+popular hashtags facet
+
+
+Russia - tweets - hetBurgerCollectief user - profile image issue - Solved (using onerror in image)
+
+include the notes in the repository
+
+rank tweets - give more weightage to facet query fields
+
+saw RT in top locations - add stopwords to all the display fields
+
+//show message that facets available for english queries only as of now
+
+
+search a russina term - no o/p in location and people  -- solution - add a filter for populating hashtags facet for english language tweets only
+
+add a globe and people profile pic image to top facets headers
+
+onchange method for the main query field -- 
+
+do a complete sanity - by checking the console all the time
+
+
+Facets remaining -->
+
+complete breadcrumbs implementation -- like multiple combination of filters
+hiding the List of facet values entirely for proper filtering
+
+
+
+
+******upcoming tasks *******
+
+
+Maps
+
+- pretty overwhelming but if done then it would be really great. - two maps - one for searhc query and one for all the indexed tweets
+
+as of now Openlayers 
+
+D3- http://www.d3noob.org/2013/03/a-simple-d3js-map-explained.html
+
+
+Sumamry -
+
+as of now found the alchemy site to be useful -
+http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/alchemy-data-news.html
+
+
+- registered using buffalo ID and have taken screenshots in Linux
+
+
+Analytis -
+
+for analytics use - http://raphaeljs.com/ or the google graph API 
+
+
+
+alchemy API - summary (wikipdeia first para and first image plus in the news), sentiment analysis and trending topics
+
+summary shoud also include a single word sentiment for the given query
+
+
+ater adding doctype - the UI broke
+
+implement a sentimetn analysis tab - which will have NLP like indicators of the given query and a sentiment analysis info about the tweets 
+
+	

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ganadores</title>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!-- the below source provides the tabs functionality -->
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<!-- the below source provides the css for tabs functionality -->
+<!-- <link rel="stylesheet"
+			href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"> -->
+<link rel="stylesheet" type="text/css" href="css/common.css">
+
+<!-- For maps -->
+<link rel="stylesheet"
+	href="http://openlayers.org/en/v3.11.2/css/ol.css" type="text/css">
+<script src="http://openlayers.org/en/v3.11.2/build/ol.js"></script>
+<link rel="stylesheet" type="text/css" href="css/maps.css">
+
+<script type="text/javascript">
+	$(function() {
+		$("#statsTabs").tabs();
+		mainQuery = "";
+		sessionStorage.originalDefaultChildren = document
+				.getElementById('results').innerHTML; //this helps to save the default elements for future use
+		$("#searchQuery").val("");
+		$("#alternateSearchQuery").val("");
+		languages = {
+			de : "German",
+			en : "English"
+		};
+	});
+
+	/* move all this to a different script file */
+	function landingFormSubmit() {
+		document.getElementById("landingHeader").style.display = 'none';
+		document.getElementById("alternateHeader").style.display = 'block';
+		//jquery
+		$("#landingForm").hide();
+		if ($("#searchQuery").val() != undefined
+				&& $("#searchQuery").val() != "") {
+			$("#alternateSearchQuery").val($("#searchQuery").val());
+			alternateFormSubmit();
+		}
+
+	}
+	function alternateFormSubmit() {
+		if ($("#alternateSearchQuery").val() != undefined
+				&& $("#alternateSearchQuery").val() != "") {
+
+			var start = Date.now();
+			$("#rightPane").hide();
+			//smaple queries
+			//http://localhost:8983/solr/partC_BM25/select?q=text_en%3AFrance&wt=json&indent=true
+			var query = $("#alternateSearchQuery").val();
+			mainQuery = query;
+			query = $.trim(query); //Remove the white spaces at the start and at the end of the string
+			var searchURLPreQUery = "http://localhost:8983/solr/partC_BM25/select?q=";
+			var finalquery = "text:" + query + " OR text_en:" + query
+					+ " OR text_de:" + query + " OR text_ru:" + query;
+			var searchURLPostQUery = "&wt=json&indent=true";
+			//http://localhost:8983/solr/partC_BM25/select?q=text%3ASyria&wt=json&indent=true&facet=true&facet.field=namesFacet
+			var facetURL = "&facet=true&facet.field=" + "namesFacet"
+					+ "&facet.field=" + "hashtagsFacet" + "&facet.field="
+					+ "locationFacet";
+			var finalURL = searchURLPreQUery + encodeURIComponent(finalquery)
+					+ searchURLPostQUery + facetURL;
+			console.log(finalURL);
+			//we can use the getJson instead of the above ajax request directly
+			$.getJSON(finalURL, function(result) {
+				$("#rightPane").show();
+				document.getElementById('selectedBreadCrumbs').innerHTML = "";
+				populateResults(result, start);
+			}).fail(function() {
+				//console.log("error");
+			});
+			//here have used jsonp instead of json inorder to hande cross origin requests
+			//refer - http://stackoverflow.com/questions/6114436/access-control-allow-origin-error-sending-a-jquery-post-to-google-apis
+
+			/* $.ajax({
+								url : searchURL,
+								dataType : "jsonp"
+
+							}).done(function(tweets) {
+						$.each(result, function(i, field) {
+							//$("div").append(field + " ");
+							console.log(field);
+						});
+					}).fail(function() {
+						alert("error");
+					}).always(function() {
+						//alert("complete");
+					});
+			 */
+			//$("#results").load("tweets.html");
+			$("#results").show();
+		}
+	}
+
+	function showTweetCard(id) {
+		//$(this).css('z-index', '-1');
+		//$("#tweetCardClone" + id).css('opacity', '1');
+		$("#tweetCardClone" + id).slideDown();
+		//$("#resultBlockDiv" + id).css('display', 'none');
+		$("#resultBlockDiv" + id).hide();
+	}
+	function hideTweetCard(id) {
+		//$(this).css('z-index', '-1');
+		$("#tweetCardClone" + id).slideUp()
+		//$("#resultBlockDiv" + id).css('display', 'block');
+		$("#resultBlockDiv" + id).show();
+	}
+	function facetFunc(facetType, facetValue) {
+		var start = Date.now();
+		var searchURLPreQUery = "http://localhost:8983/solr/partC_BM25/select?q=";
+		var finalquery = "text:" + mainQuery + " OR text_en:" + mainQuery
+				+ " OR text_de:" + mainQuery + " OR text_ru:" + mainQuery;
+		var searchURLPostQUery = "&wt=json&indent=true";
+		//http://localhost:8983/solr/partC_BM25/select?q=text%3ASyria&wt=json&indent=true&facet=true&facet.field=namesFacet
+		var facetURL = "";
+		var filterQuery = "";//adding the filters based on the selected facet
+		if (facetType == 'hashtag') {
+			facetURL = "&facet=true&facet.field=" + "namesFacet"
+					+ "&facet.field=" + "locationFacet";
+			filterQuery = "&fq=tweet_hashtags" + encodeURIComponent(":")
+					+ facetValue;
+			//handling the display of breadcrumbs
+			document.getElementById('selectedBreadCrumbs').innerHTML = "<span class='topHastagBC'>#"
+					+ facetValue + "</span>";
+
+		} else if (facetType == 'people') {
+			facetURL = "&facet=true&facet.field=" + "hashtagsFacet"
+					+ "&facet.field=" + "locationFacet";
+			filterQuery = "&fq=peopleNames" + encodeURIComponent(":")
+					+ facetValue;
+			document.getElementById('selectedBreadCrumbs').innerHTML = "<span class='topPeopleBC'>"
+					+ facetValue + "</span>";
+		} else if (facetType == 'location') {
+			facetURL = "&facet=true&facet.field=" + "namesFacet"
+					+ "&facet.field=" + "hashtagsFacet";
+			filterQuery = "&fq=location" + encodeURIComponent(":") + facetValue;
+			document.getElementById('selectedBreadCrumbs').innerHTML = "<span class='topLocationBC'>"
+					+ facetValue + "</span>";
+		}
+		console.log(document.getElementById('selectedBreadCrumbs').innerHTML);
+		var finalURL = searchURLPreQUery + encodeURIComponent(finalquery)
+				+ filterQuery + searchURLPostQUery + facetURL;
+		console.log(finalURL);
+		//we can use the getJson instead of the above ajax request directly
+		$.getJSON(finalURL, function(result) {
+			populateResults(result, start);
+		}).fail(function() {
+			//console.log("error");
+		});
+	}
+	function populateResults(result, start) {
+
+		var end = Date.now();
+		//the outer div which will containt the cloned elements
+		var resultDiv = document.getElementById('results');
+		//emptying the div which has earlier results
+		resultDiv.innerHTML = '';
+		//originalDefaultChildren.appendTo('#results');
+		$("#results").html(sessionStorage.originalDefaultChildren);//loading the default elements from the session
+		resultDiv = document.getElementById('results'); //reassigning the fresh resultDiv variable
+		//the div which will be repeated - cloned
+		var resultBlockDiv = document.getElementById('resultBlock');
+		//setting the total results and the time spent
+		if (start != undefined) {
+			var totalSecs = (end - start) / 1000;
+			$("#totalResults").empty();
+			$("#totalResults").append(
+					"Top Tweets - " + result.response.numFound
+							+ " results fetched in " + totalSecs + " seconds");
+		}
+		var tweets = result.response.docs;
+		$
+				.each(
+						tweets,
+						function(i, field) {
+
+							//$("div").append(field + " ");
+							//console.log(field);
+							var clone = resultBlockDiv.cloneNode(true);
+							//setting the username
+							clone.childNodes[1].childNodes[1].childNodes[0].textContent = field.name;
+							//setting the date
+							clone.childNodes[1].childNodes[1].childNodes[1].childNodes[0].textContent = new Date(
+									field.created_at).toDateString();
+							//setting the language 
+							clone.childNodes[1].childNodes[1].childNodes[2].childNodes[0].textContent = languages[field.lang];
+							//the common text field helps in remvoing the if conditions
+							clone.childNodes[1].childNodes[3].childNodes[0].textContent = field.text;
+							//for hashtags
+							if (field.tweet_hashtags != undefined) {
+								clone.childNodes[1].childNodes[5].childNodes[0].textContent = "#"
+										+ field.tweet_hashtags.join(' #');
+							} else {
+								clone.childNodes[1].childNodes[5].childNodes[0].textContent = [];
+							}
+							//giving an unique ID to the newly created element
+							clone.id = "resultBlockDiv" + i;
+
+							//adding tweet card
+							var tweetCardClone = document.getElementById(
+									'tweetCard').cloneNode(true);
+							tweetCardClone.id = "tweetCardClone" + i;
+							//populate the tweet card
+							//setting the username
+							//for image 
+							if (field.profImageURL != undefined
+									&& field.profImageURL != "") {
+								tweetCardClone.childNodes[1].childNodes[1].childNodes[1].src = field.profImageURL;
+							}//else we have a default image for that
+							tweetCardClone.childNodes[1].childNodes[3].childNodes[0].textContent = field.name;
+							tweetCardClone.childNodes[1].childNodes[3].childNodes[1].childNodes[0].textContent = "@"
+									+ field.screen_name;
+							//setting the user description
+							if (field.description != undefined
+									&& field.description != "") {
+
+								tweetCardClone.childNodes[1].childNodes[5].childNodes[0].textContent = "\""
+										+ field.description + "\"";
+							} else {
+								tweetCardClone.childNodes[1].childNodes[5].childNodes[0].textContent = "";
+							}
+							//setting the date
+							tweetCardClone.childNodes[3].childNodes[1].childNodes[0].textContent = field.text;
+							//for hashtags
+							if (field.tweet_hashtags != undefined) {
+								tweetCardClone.childNodes[3].childNodes[3].childNodes[0].textContent = "#"
+										+ field.tweet_hashtags.join(' #');
+							} else {
+								tweetCardClone.childNodes[3].childNodes[3].childNodes[0].textContent = [];
+							}
+							//the common text field helps in remvoing the if conditions
+							tweetCardClone.childNodes[3].childNodes[5].childNodes[0].textContent = new Date(
+									field.created_at).toDateString();
+							//setting the language 
+							tweetCardClone.childNodes[3].childNodes[6].childNodes[0].textContent = languages[field.lang];
+
+							resultDiv.appendChild(tweetCardClone);
+							resultDiv.appendChild(clone);
+							//attaching  the event to show the clone
+							$("#resultBlockDiv" + i).click(function() {
+								showTweetCard(i);
+							});
+							$("#tweetCardClone" + i).mouseleave(function() {
+								hideTweetCard(i);
+							});
+						});
+		//hiding the default implementations
+		$("#resultBlock").hide();
+		$("#tweetCard").hide();
+
+		//adding the facets
+		if (result.facet_counts == undefined) {
+			document.getElementById('topLocations').innerHTML = "Sorry, no top locations present for this query.";
+			document.getElementById('topHashtags').innerHTML = "Sorry, no top hshtags present for this query.";
+			document.getElementById('topPeople').innerHTML = "Sorry, no top People present for this query.";
+		} else {
+			var namesFacet = result.facet_counts.facet_fields.namesFacet;
+			var locationFacet = result.facet_counts.facet_fields.locationFacet;
+			var hashtagsFacet = result.facet_counts.facet_fields.hashtagsFacet;
+			//collecting only the top 10 
+			if (hashtagsFacet != undefined) {
+				document.getElementById('topHashtags').innerHTML = "";//resetting the list
+				$.each(hashtagsFacet, function(i, field) {
+					if (i == 30) {
+						return false;
+					}
+					//this check helps to avoid facets with 0 occurrences
+					if (hashtagsFacet[i + 1] != undefined
+							&& hashtagsFacet[i + 1] == 0) {
+						return false;
+					}
+					if (i % 2 == 0) {
+						$('<li />', {
+							html : '#' + field,
+							class : 'topHastagEntry',
+							on : {
+								click : function() {
+									facetFunc("hashtag", field);
+								}
+							}
+						}).appendTo('#topHashtags');
+					}
+				});
+			} else {
+				//empty the list
+				document.getElementById('topHashtags').innerHTML = "Sorry, no top hshtags present for this query.";
+			}
+			if (namesFacet != undefined) {
+				document.getElementById('topPeople').innerHTML = "";//resetting the list
+				$.each(namesFacet, function(i, field) {
+					if (i == 30) {
+						return false;
+					}
+					//this check helps to avoid facets with 0 occurrences
+					if (namesFacet[i + 1] != undefined
+							&& namesFacet[i + 1] == 0) {
+						return false;
+					}
+					if (i % 2 == 0) {
+						$('<li />', {
+							html : field,
+							class : 'topPeopleEntry',
+							on : {
+								click : function() {
+									facetFunc("people", field);
+								}
+							}
+						}).appendTo('#topPeople');
+					}
+				});
+			} else {
+				//empty the list
+				document.getElementById('topPeople').innerHTML = "Sorry, no top People present for this query.";
+			}
+			if (locationFacet != undefined) {
+				document.getElementById('topLocations').innerHTML = "";//resetting the list
+				$.each(locationFacet, function(i, field) {
+					if (i == 30) {
+						return false;
+					}
+					//this check helps to avoid facets with 0 occurrences
+					if (locationFacet[i + 1] != undefined
+							&& locationFacet[i + 1] == 0) {
+						return false;
+					}
+					if (i % 2 == 0) {
+						$('<li />', {
+							html : field,
+							class : 'topLocationEntry',
+							on : {
+								click : function() {
+									facetFunc("location", field);
+								}
+							}
+						}).appendTo('#topLocations');
+					}
+				});
+			} else {
+				//empty the list
+				document.getElementById('topLocations').innerHTML = "Sorry, no top locations present for this query.";
+			}
+		}
+	}
+</script>
+</head>
+<body>
+	<div id="landingHeader" class="landingHeader">
+		<span id="landingLogo" class="landingLogo"><img alt="ganadores"
+			src=""><span class="landinglogotext">Ganadores</span></span>
+	</div>
+	<div id="alternateHeader" class="alternateHeader">
+		<div id="alternateForm" class="alternateForm">
+
+			<form id="alternateSearchForm" action="" class="alternateSearchForm">
+				<span id="alternateLogo" class="alternateLogo"><img
+					alt="ganadores" src=""><span class="alternateLogotext">Ganadores</span></span>
+				<input type="text" id="alternateSearchQuery"
+					name="alternateSearchQuery" class="alternateSearchInput"> <input
+					type="button" id="alternateSearchButton"
+					name="alternateSearchButton" class="alternateSearchButton"
+					onclick="alternateFormSubmit()" value="Go">
+			</form>
+		</div>
+	</div>
+	<div id="container" class="container">
+		<div id="landingForm" class="landingForm">
+			<form id="searchForm" action="" class="searchForm">
+				<input type="text" id="searchQuery" name="searchQuery"
+					class="searchInput" autofocus> <input type="button"
+					id="searchButton" name="searchButton" class="searchButton"
+					onclick="landingFormSubmit()" value="Go">
+			</form>
+		</div>
+		<!-- Parent table which divides the container central portion in two halves -->
+		<div class="leftPane">
+			<div id="results" class="results">
+				<div id="totalResults" class="totalResults"></div>
+				<div id="tweetCard" class="tweetCard">
+					<div class="tweetCardUser">
+						<div class="profilePicture">
+							<img alt="Profile Picture"
+								src="images/default_profile_1_normal.png"
+								onerror="this.src = 'images/default_profile_1_normal.png'">
+						</div>
+						<div class="tweetCardUserName">
+							abinBehera <a href="#" class="tweetCardUserScreenName">@abinBehera</a>
+						</div>
+						<div class="tweetCardUserDesc">ABKB</div>
+					</div>
+					<div class="tweetCardtweetInfo">
+						<div class="tweetContent">Tweet Content</div>
+						<span class="hashtags">#TweetHashtags</span> <span
+							class="tweetDate">Sat May 23 2015</span><span class="tweetLang">English</span>
+					</div>
+				</div>
+				<div id="resultBlock" class="resultBlock">
+					<div class="tweetInfo">
+						<div class="tweetUserContent">
+							abinBehera <span class="tweetDate">Sat May 23 2015</span><span
+								class="tweetLang">English</span>
+						</div>
+
+						<div class="tweetContent">Tweet Content</div>
+						<span class="hashtags">#TweetHashtags</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="rightPane" class="rightPane">
+
+			<div id="statsTabs">
+				<ul class="rightPaneTabsUl">
+					<li class="rightPaneTabs"><a class="rightPaneHeaders"
+						href="#summaryTab">Summary</a> |</li>
+					<li class="rightPaneTabs"><a class="rightPaneHeaders"
+						href="#facetsTab">Facets</a> |</li>
+					<li class="rightPaneTabs"><a class="rightPaneHeaders"
+						href="#analyticsTab">Statistics</a></li>
+				</ul>
+				<div id="summaryTab">
+					<div class="container-fluid">
+
+						<div class="row-fluid">
+							<div class="span12">
+								<div id="map" class="map"></div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+				<div id="facetsTab">
+					<div id="breadCrumbs" class="breadCrumbs">
+						FILTERS: <span id="selectedBreadCrumbs"
+							class="selectedBreadCrumbs"></span><a href="#"
+							onclick="alternateFormSubmit();return false;" class="clearLink">Clear</a>
+					</div>
+					<div id="hashTagFacet">
+						<div class="facetHeader">Top Hashtags</div>
+						<ul id="topHashtags" class="hashtags">
+						</ul>
+					</div>
+					<div id="peopleFacet">
+						<div class="facetHeader">Top People</div>
+						<ul id="topPeople">
+						</ul>
+					</div>
+					<div id="locationFacet">
+						<div class="facetHeader">Top Locations</div>
+						<ul id="topLocations">
+						</ul>
+					</div>
+				</div>
+				<div id="analyticsTab"></div>
+			</div>
+		</div>
+		<script>
+			var earthquakeFill = new ol.style.Fill({
+				color : 'rgba(255, 153, 0, 0.8)'
+			});
+			var earthquakeStroke = new ol.style.Stroke({
+				color : 'rgba(255, 204, 0, 0.2)',
+				width : 1
+			});
+			var textFill = new ol.style.Fill({
+				color : '#fff'
+			});
+			var textStroke = new ol.style.Stroke({
+				color : 'rgba(0, 0, 0, 0.6)',
+				width : 3
+			});
+			var invisibleFill = new ol.style.Fill({
+				color : 'rgba(255, 255, 255, 0.01)'
+			});
+
+			function createEarthquakeStyle(feature) {
+				// 2012_Earthquakes_Mag5.kml stores the magnitude of each earthquake in a
+				// standards-violating <magnitude> tag in each Placemark.  We extract it
+				// from the Placemark's name instead.
+				var name = feature.get('name');
+				var magnitude = parseFloat(name.substr(2));
+				var radius = 5 + 20 * (magnitude - 5);
+
+				return new ol.style.Style({
+					geometry : feature.getGeometry(),
+					image : new ol.style.RegularShape({
+						radius1 : radius,
+						radius2 : 3,
+						points : 5,
+						angle : Math.PI,
+						fill : earthquakeFill,
+						stroke : earthquakeStroke
+					})
+				});
+			}
+
+			var maxFeatureCount;
+			function calculateClusterInfo(resolution) {
+				maxFeatureCount = 0;
+				var features = vector.getSource().getFeatures();
+				var feature, radius;
+				for (var i = features.length - 1; i >= 0; --i) {
+					feature = features[i];
+					var originalFeatures = feature.get('features');
+					var extent = ol.extent.createEmpty();
+					for (var j = 0, jj = originalFeatures.length; j < jj; ++j) {
+						ol.extent.extend(extent, originalFeatures[j]
+								.getGeometry().getExtent());
+					}
+					maxFeatureCount = Math.max(maxFeatureCount, jj);
+					radius = 0.25
+							* (ol.extent.getWidth(extent) + ol.extent
+									.getHeight(extent)) / resolution;
+					feature.set('radius', radius);
+				}
+			}
+
+			var currentResolution;
+			function styleFunction(feature, resolution) {
+				if (resolution != currentResolution) {
+					calculateClusterInfo(resolution);
+					currentResolution = resolution;
+				}
+				var style;
+				var size = feature.get('features').length;
+				if (size > 1) {
+					style = [ new ol.style.Style(
+							{
+								image : new ol.style.Circle(
+										{
+											radius : feature.get('radius'),
+											fill : new ol.style.Fill(
+													{
+														color : [
+																255,
+																153,
+																0,
+																Math
+																		.min(
+																				0.8,
+																				0.4 + (size / maxFeatureCount)) ]
+													})
+										}),
+								text : new ol.style.Text({
+									text : size.toString(),
+									fill : textFill,
+									stroke : textStroke
+								})
+							}) ];
+				} else {
+					var originalFeature = feature.get('features')[0];
+					style = [ createEarthquakeStyle(originalFeature) ];
+				}
+				return style;
+			}
+
+			function selectStyleFunction(feature, resolution) {
+				var styles = [ new ol.style.Style({
+					image : new ol.style.Circle({
+						radius : feature.get('radius'),
+						fill : invisibleFill
+					})
+				}) ];
+				var originalFeatures = feature.get('features');
+				var originalFeature;
+				for (var i = originalFeatures.length - 1; i >= 0; --i) {
+					originalFeature = originalFeatures[i];
+					styles.push(createEarthquakeStyle(originalFeature));
+				}
+				return styles;
+			}
+
+			var vector = new ol.layer.Vector({
+				source : new ol.source.Cluster({
+					distance : 40,
+					source : new ol.source.Vector({
+						url : 'data/custom.kml',
+						format : new ol.format.KML({
+							extractStyles : false
+						})
+					})
+				}),
+				style : styleFunction
+			});
+
+			var raster = new ol.layer.Tile({
+				source : new ol.source.Stamen({
+					layer : 'toner'
+				})
+			});
+
+			var map = new ol.Map({
+				layers : [ raster, vector ],
+				interactions : ol.interaction.defaults().extend(
+						[ new ol.interaction.Select({
+							condition : function(evt) {
+								return evt.originalEvent.type == 'mousemove'
+										|| evt.type == 'singleclick';
+							},
+							style : selectStyleFunction
+						}) ]),
+				target : 'map',
+				view : new ol.View({
+					center : [ 0, 0 ],
+					zoom : 2
+				})
+			});
+		</script>
+	</div>
+	<div id="footer" class="footer"></div>
+</body>
+</html>
